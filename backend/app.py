@@ -1,17 +1,20 @@
-from flask import Flask, jsonify
-from flask_cors import CORS
+from flask import Flask
+from db import init_db
 from auth import auth_bp
+from models import User  # Import to register model with SQLAlchemy
+from flask_cors import CORS
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key'  # Replace with a strong secret key
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SECRET_KEY'] = 'your_secret_key_here'
+CORS(app)
 
-CORS(app)  # enable CORS for frontend calls
+init_db(app)
 
 app.register_blueprint(auth_bp, url_prefix='/api')
-
 @app.route('/')
 def index():
-    return jsonify({'message': 'API is running'})
-
+    return 'Flask Backend is running!'
 if __name__ == '__main__':
     app.run(debug=True)
