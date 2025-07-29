@@ -15,9 +15,17 @@ export default function Register() {
     setError('');
     setSuccess('');
     try {
-      await API.post('/api/register', { username, password });
-      setSuccess('Registration successful! Redirecting...');
-      setTimeout(() => navigate('/login'), 2000);
+      const response = await API.post('/api/register', { username, password });
+  
+      const token = response.data.token;
+  
+      if (token) {
+        localStorage.setItem('token', token); // Store JWT
+        setSuccess('Registration successful! Redirecting...');
+        setTimeout(() => navigate('/'), 1500); // Redirect to /home
+      } else {
+        setError('Registration succeeded but token not received');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
     }
