@@ -5,8 +5,6 @@ function UploadItem() {
   const [image, setImage] = useState(null);
   const [placeDesc, setPlaceDesc] = useState("");
   const [itemDesc, setItemDesc] = useState("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
 
   const navigate = useNavigate();
 
@@ -20,7 +18,7 @@ function UploadItem() {
   };
 
   const handleSubmit = () => {
-    if (!image || !placeDesc || !itemDesc || !name || !email) {
+    if (!image || !placeDesc || !itemDesc) {
       return alert("Fill all fields");
     }
 
@@ -31,8 +29,6 @@ function UploadItem() {
           image,
           placeDesc,
           itemDesc,
-          name,
-          email,
           time: new Date().toISOString(), // 🕒 Added timestamp
           location: {
             lat: pos.coords.latitude,

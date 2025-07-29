@@ -14,12 +14,14 @@ def token_required(f):
         if not token:
             return jsonify({'message': 'Token is missing!'}), 401
         try:
-            token = token.split()[1]  # Bearer <token>
-            data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
-            current_user = User.query.filter_by(username=data['username']).first()
+            token = token.split()[1]  # Expecting "Bearer <token>"
+            payload = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
+            current_user = User.query.filter_by(username=payload['username']).first()
             if not current_user:
                 return jsonify({'message': 'User not found!'}), 401
-        except Exception as e:
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Token has expired!'}), 401
+        except jwt.InvalidTokenError:
             return jsonify({'message': 'Token is invalid!'}), 401
         return f(current_user, *args, **kwargs)
     return decorated
@@ -30,6 +32,9 @@ def register():
     username = data.get('username')
     password = data.get('password')
 
+    if not username or not password:
+        return jsonify({'message': 'Username and password are required'}), 400
+
     if User.query.filter_by(username=username).first():
         return jsonify({'message': 'User already exists'}), 400
 
@@ -39,13 +44,22 @@ def register():
     db.session.add(new_user)
     db.session.commit()
 
-    return jsonify({'message': 'User registered successfully'})
+    # Generate token upon successful registration
+    token = jwt.encode({
+        'username': username,
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    }, current_app.config['SECRET_KEY'], algorithm='HS256')
+
+    return jsonify({'message': 'User registered successfully', 'token': token})
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
+
+    if not username or not password:
+        return jsonify({'message': 'Username and password are required'}), 400
 
     user = User.query.filter_by(username=username).first()
     if not user or not user.check_password(password):

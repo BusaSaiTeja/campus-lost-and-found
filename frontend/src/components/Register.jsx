@@ -12,41 +12,53 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setSuccess('');
     try {
-      await API.post('/api/register', { username, password });
-      setSuccess('Registration successful!');
-      setTimeout(() => navigate('/'), 2000);
+      const response = await API.post('/api/register', { username, password });
+  
+      const token = response.data.token;
+  
+      if (token) {
+        localStorage.setItem('token', token); // Store JWT
+        setSuccess('Registration successful! Redirecting...');
+        setTimeout(() => navigate('/'), 1500); // Redirect to /home
+      } else {
+        setError('Registration succeeded but token not received');
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
     }
   };
 
   return (
-    <div className="auth-container">
-      <h2>Register</h2>
-      {error && <div className="error-msg">{error}</div>}
-      {success && <div className="success-msg">{success}</div>}
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Choose a Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-          autoFocus
-        />
-        <input
-          type="password"
-          placeholder="Choose a Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Register</button>
-      </form>
-      <p>
-        Already have an account? <Link to="/login">Log in here</Link>
-      </p>
+    <div className="auth-page">
+      <div className="auth-container">
+        <h2>Register</h2>
+        {error && <div className="error-msg">{error}</div>}
+        {success && <div className="success-msg">{success}</div>}
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required autoFocus
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button type="submit">Register</button>
+        </form>
+        <p>
+          Already have an account?{' '}
+          <Link to="/login">Log in here</Link>
+        </p>
+      </div>
     </div>
   );
 }
