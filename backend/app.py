@@ -1,7 +1,7 @@
 from flask import Flask
 from db import init_db
 from auth import auth_bp
-from models import User  # Import to register model with SQLAlchemy
+from models import User  
 from flask_cors import CORS
 
 app = Flask(__name__)
