@@ -5,8 +5,6 @@ function UploadItem() {
   const [image, setImage] = useState(null);
   const [placeDesc, setPlaceDesc] = useState("");
   const [itemDesc, setItemDesc] = useState("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
 
   const navigate = useNavigate();
 
@@ -20,7 +18,7 @@ function UploadItem() {
   };
 
   const handleSubmit = () => {
-    if (!image || !placeDesc || !itemDesc || !name || !email) {
+    if (!image || !placeDesc || !itemDesc) {
       return alert("Fill all fields");
     }
 
@@ -31,9 +29,7 @@ function UploadItem() {
           image,
           placeDesc,
           itemDesc,
-          name,
-          email,
-          time: new Date().toISOString(), // 🕒 Added timestamp
+          time: new Date().toISOString(),
           location: {
             lat: pos.coords.latitude,
             lng: pos.coords.longitude,
@@ -54,22 +50,6 @@ function UploadItem() {
         <div className="grid md:grid-cols-2 gap-8">
           {/* Left side: form */}
           <div className="space-y-4">
-            <input
-              type="text"
-              placeholder="Your Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-
-            <input
-              type="email"
-              placeholder="Email ID"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-
             <textarea
               placeholder="Place Description"
               rows={4}
