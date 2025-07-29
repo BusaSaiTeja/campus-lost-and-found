@@ -14,8 +14,8 @@ export default function Register() {
     e.preventDefault();
     try {
       await API.post('/api/register', { username, password });
-      setSuccess('Registration successful! Redirecting to login...');
-      setTimeout(() => navigate('/login'), 2000);
+      setSuccess('Registration successful!');
+      setTimeout(() => navigate('/'), 2000);
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
     }
