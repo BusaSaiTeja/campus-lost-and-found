@@ -5,40 +5,59 @@ function UploadItem() {
   const [image, setImage] = useState(null);
   const [placeDesc, setPlaceDesc] = useState("");
   const [itemDesc, setItemDesc] = useState("");
-
   const navigate = useNavigate();
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => setImage(reader.result);
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => setImage(reader.result);
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = () => {
     if (!image || !placeDesc || !itemDesc) {
-      return alert("Fill all fields");
+      alert("Fill all fields");
+      return;
     }
 
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const data = JSON.parse(localStorage.getItem("uploads") || "[]");
-        data.push({
+      async (position) => {
+        const data = {
           image,
           placeDesc,
           itemDesc,
-          time: new Date().toISOString(), // 🕒 Added timestamp
           location: {
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
           },
-        });
-        localStorage.setItem("uploads", JSON.stringify(data));
-        navigate("/");
+        };
+
+        try {
+          const res = await fetch("http://localhost:5000/api/upload", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+
+          const json = await res.json();
+          if (res.ok) {
+            alert("Upload successful!");
+            navigate("/");
+          } else {
+            alert(json.message || "Upload failed");
+          }
+        } catch (err) {
+          console.error("Upload error:", err);
+          alert("Error uploading");
+        }
       },
-      () => alert("Location access denied")
+      () => {
+        alert("Location permission denied");
+      }
     );
   };
 
@@ -48,24 +67,8 @@ function UploadItem() {
         <h2 className="text-3xl font-bold text-blue-700 mb-8 text-center">Upload Lost Item</h2>
 
         <div className="grid md:grid-cols-2 gap-8">
-          {/* Left side: form */}
+          {/* Form */}
           <div className="space-y-4">
-            <input
-              type="text"
-              placeholder="Your Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-
-            <input
-              type="email"
-              placeholder="Email ID"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-
             <textarea
               placeholder="Place Description"
               rows={4}
@@ -90,7 +93,7 @@ function UploadItem() {
             </button>
           </div>
 
-          {/* Right side: image upload + preview */}
+          {/* Image preview */}
           <div className="flex flex-col items-center space-y-4">
             <input
               type="file"
@@ -100,7 +103,6 @@ function UploadItem() {
                          file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700
                          hover:file:bg-blue-100"
             />
-
             {image && (
               <img
                 src={image}
