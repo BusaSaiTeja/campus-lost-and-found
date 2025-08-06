@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import Popup from "../components/popup";
 
 function Home() {
   const [uploads, setUploads] = useState([]);
@@ -85,7 +86,7 @@ function Home() {
                   <strong>ItemDesc:</strong> {item.itemDesc || "No place info"}
                 </p>
                 <p className="text-gray-500 text-xs mt-1">
-                  {item.timestamp ? new Date(item.timestamp).toLocaleString() : "No time info"}
+                  {item.timestamp ? new Date(item.timestamp.$date).toLocaleString() : "No time info"}
                 </p>
                 <p className="text-gray-600 text-xs mt-1">
                   <strong>Location:</strong>{" "}
@@ -107,62 +108,7 @@ function Home() {
           ))}
         </div>
       )}
-
-      {/* Modal */}
-      {activeImage && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50"
-          onClick={() => setActiveImage(null)}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl p-6 relative w-[90%] max-w-3xl max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setActiveImage(null)}
-              className="absolute top-2 right-2 text-gray-500 hover:text-red-600 text-2xl font-bold"
-              aria-label="Close"
-            >
-              &times;
-            </button>
-
-            {activeImage.imageUrl ? (
-              <img
-                src={activeImage.imageUrl}
-                alt="Full preview"
-                className="w-full max-h-[60vh] object-contain mb-4 rounded"
-              />
-            ) : (
-              <div className="w-full h-60 bg-gray-200 flex items-center justify-center text-gray-500">
-                No image available
-              </div>
-            )}
-
-            {/* All details shown here */}
-            <div className="text-sm text-gray-800 space-y-2">
-              <p><strong>ID:</strong> {activeImage._id || "N/A"}</p>
-              <p><strong>Uploaded By ID:</strong> {activeImage.uploadedBy?.$oid || "N/A"}</p>
-              <p><strong>Username:</strong> {activeImage.username || "Anonymous"}</p>
-              <p><strong>Contact:</strong> {activeImage.contact || "N/A"}</p>
-              <p><strong>Place Description:</strong> {activeImage.placeDesc || "N/A"}</p>
-              <p><strong>Item Description:</strong> {activeImage.itemDesc || "N/A"}</p>
-              <p><strong>Timestamp:</strong> {new Date(activeImage.timestamp).toLocaleString() || "N/A"}</p>
-              <p>
-                <strong>Location:</strong>{" "}
-                {activeImage.location
-                  ? `Lat: ${activeImage.location.coordinates[1]}, Lng: ${activeImage.location.coordinates[0]}`
-                  : "N/A"}
-              </p>
-              <p><strong>Status:</strong> {activeImage.status ? activeImage.status.toUpperCase() : "N/A"}</p>
-            </div>
-
-            {/* Debug: Show full JSON object */}
-            {/* <pre className="mt-6 p-4 bg-gray-100 rounded text-xs overflow-auto max-h-48">
-              {JSON.stringify(activeImage, null, 2)}
-            </pre> */}
-          </div>
-        </div>
-      )}
+    <Popup activeImage={activeImage} setActiveImage={setActiveImage} />
     </div>
   );
 }
