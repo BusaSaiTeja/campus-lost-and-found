@@ -141,17 +141,12 @@ function Home() {
             {/* All details shown here */}
             <div className="text-sm text-gray-800 space-y-2">
               <p><strong>ID:</strong> {activeImage._id || "N/A"}</p>
-              <p><strong>Uploaded By ID:</strong> {activeImage.uploadedBy || "N/A"}</p>
+              <p><strong>Uploaded By ID:</strong> {activeImage.uploadedBy?.$oid || "N/A"}</p>
               <p><strong>Username:</strong> {activeImage.username || "Anonymous"}</p>
               <p><strong>Contact:</strong> {activeImage.contact || "N/A"}</p>
               <p><strong>Place Description:</strong> {activeImage.placeDesc || "N/A"}</p>
               <p><strong>Item Description:</strong> {activeImage.itemDesc || "N/A"}</p>
-              <p>
-                <strong>Time:</strong>{" "}
-                {activeImage.timestamp
-                  ? new Date(activeImage.timestamp).toLocaleString()
-                  : "N/A"}
-              </p>
+              <p><strong>Timestamp:</strong> {new Date(activeImage.timestamp).toLocaleString() || "N/A"}</p>
               <p>
                 <strong>Location:</strong>{" "}
                 {activeImage.location
@@ -162,9 +157,9 @@ function Home() {
             </div>
 
             {/* Debug: Show full JSON object */}
-            <pre className="mt-6 p-4 bg-gray-100 rounded text-xs overflow-auto max-h-48">
+            {/* <pre className="mt-6 p-4 bg-gray-100 rounded text-xs overflow-auto max-h-48">
               {JSON.stringify(activeImage, null, 2)}
-            </pre>
+            </pre> */}
           </div>
         </div>
       )}
