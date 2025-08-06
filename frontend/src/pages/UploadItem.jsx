@@ -9,6 +9,7 @@ const UploadItem = () => {
   const [geoLocation, setGeoLocation] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('');
   const [isGettingLocation, setIsGettingLocation] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const convertToBase64 = (file) => {
     return new Promise((resolve, reject) => {
@@ -58,12 +59,14 @@ const UploadItem = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (isSubmitting) return; // 🚫 Prevent multiple clicks
+    setIsSubmitting(true); // 🔒 Lock
   
     if (!image || image.trim() === '' || !placeDesc.trim() || !itemDesc.trim() || !contact.trim()) {
       setUploadStatus('Please fill in all fields.');
       return;
     }
-    
     
     if (!geoLocation) {
       setUploadStatus('Please capture your location');
@@ -112,8 +115,10 @@ const UploadItem = () => {
       } else {
         setUploadStatus('⚠️ Network error. Please try again.');
       }
-    }
-  };
+    } finally {
+    setIsSubmitting(false); // 🔓 Unlock after response
+  }
+};
   
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
@@ -188,11 +193,13 @@ const UploadItem = () => {
           )}
         </div>
         <button
-          type="submit"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded transition-colors"
-        >
-          Submit
-        </button>
+  type="submit"
+  disabled={isSubmitting}
+  className={`w-full ${isSubmitting ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white py-2 rounded transition-colors`}
+>
+  {isSubmitting ? 'Uploading...' : 'Submit'}
+</button>
+
       </form>
       {uploadStatus && (
         <p className="mt-4 text-center text-sm font-medium text-gray-700">
