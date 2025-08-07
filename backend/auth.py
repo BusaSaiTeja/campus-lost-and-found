@@ -1,25 +1,41 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify, current_app, make_response
 import jwt
 import datetime
 from functools import wraps
-from models import User  # Fixed import at top level
+from models import User
 
 auth_bp = Blueprint('auth', __name__)
+
+ACCESS_TOKEN_EXPIRES_MINUTES = 15
+REFRESH_TOKEN_EXPIRES_DAYS = 7
+
+def create_access_token(username):
+    return jwt.encode({
+        'username': username,
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=ACCESS_TOKEN_EXPIRES_MINUTES)
+    }, current_app.config['SECRET_KEY'], algorithm='HS256')
+
+def create_refresh_token(username):
+    return jwt.encode({
+        'username': username,
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(days=REFRESH_TOKEN_EXPIRES_DAYS)
+    }, current_app.config['SECRET_KEY'], algorithm='HS256')
 
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
-        token = request.headers.get('Authorization')
+        token = request.cookies.get('access_token')  # get token from cookie
         if not token:
             return jsonify({'message': 'Token is missing!'}), 401
         try:
-            token = token.split()[1]  # Bearer <token>
             data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
             current_user = User.find_by_username(data['username'])
             if not current_user:
                 return jsonify({'message': 'User not found!'}), 401
-        except Exception as e:
-            return jsonify({'message': 'Token is invalid!'}), 401
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Access token expired'}), 401
+        except Exception:
+            return jsonify({'message': 'Invalid token'}), 401
         return f(current_user, *args, **kwargs)
     return decorated
 
@@ -29,43 +45,67 @@ def register():
     username = data.get('username')
     password = data.get('password')
 
+    if not username or not password:
+        return jsonify({'message': 'Username and password are required'}), 400
+
     if User.find_by_username(username):
         return jsonify({'message': 'User already exists'}), 400
 
     User.create_user(username, password)
 
-    # Generate token after registration
-    token = jwt.encode({
-        'username': username,
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
-    }, current_app.config['SECRET_KEY'], algorithm='HS256')
+    access_token = create_access_token(username)
+    refresh_token = create_refresh_token(username)
 
-    if isinstance(token, bytes):
-        token = token.decode('utf-8')
-
-    return jsonify({'message': 'User registered successfully', 'token': token})
-
+    response = make_response(jsonify({'access_token': access_token}))
+    response.set_cookie('access_token', access_token, httponly=True, samesite='Strict', secure=False)  # Set secure=True in prod
+    response.set_cookie('refresh_token', refresh_token, httponly=True, samesite='Strict', secure=False)
+    return response
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    print("Request from IP:", request.remote_addr)
-    print("Headers:", dict(request.headers))
-    print("JSON Data:", request.get_json())
-    
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
-
+    print(username, password)
     user = User.find_by_username(username)
     if not user or not User.check_password(user, password):
         return jsonify({'message': 'Invalid credentials'}), 401
 
-    token = jwt.encode({
-        'username': user['username'],
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
-    }, current_app.config['SECRET_KEY'], algorithm='HS256')
+    access_token = create_access_token(username)
+    refresh_token = create_refresh_token(username)
 
-    return jsonify({'token': token})
+    response = make_response(jsonify({'message': 'Login successful'}))
+    response.set_cookie('access_token', access_token, httponly=True, samesite='Lax', secure=False)
+    response.set_cookie('refresh_token', refresh_token, httponly=True, samesite='Lax', secure=False)
+    return response
+
+@auth_bp.route('/refresh', methods=['POST'])
+def refresh():
+    refresh_token = request.cookies.get('refresh_token')
+    if not refresh_token:
+        return jsonify({'message': 'Refresh token missing'}), 401
+    try:
+        data = jwt.decode(refresh_token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
+        username = data['username']
+        user = User.find_by_username(username)
+        if not user:
+            return jsonify({'message': 'User not found'}), 401
+
+        new_access_token = create_access_token(username)
+        response = make_response(jsonify({'message': 'Token refreshed'}))
+        response.set_cookie('access_token', new_access_token, httponly=True, samesite='Lax', secure=False)
+        return response
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Refresh token expired'}), 401
+    except Exception:
+        return jsonify({'message': 'Invalid refresh token'}), 401
+
+@auth_bp.route('/logout', methods=['POST'])
+def logout():
+    response = make_response(jsonify({'message': 'Logged out'}))
+    response.set_cookie('access_token', '', expires=0, httponly=True, samesite='Strict', secure=False)
+    response.set_cookie('refresh_token', '', expires=0, httponly=True, samesite='Strict', secure=False)
+    return response
 
 @auth_bp.route('/verify_token', methods=['GET'])
 @token_required

@@ -1,25 +1,23 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import API from '../api';
+import React, { useState } from "react";
+import API from "../api";
 
 const UploadItem = () => {
   const [image, setImage] = useState(null);
-  const [placeDesc, setPlaceDesc] = useState('');
-  const [itemDesc, setItemDesc] = useState('');
-  const [contact, setContact] = useState('');
+  const [placeDesc, setPlaceDesc] = useState("");
+  const [itemDesc, setItemDesc] = useState("");
+  const [contact, setContact] = useState("");
   const [geoLocation, setGeoLocation] = useState(null);
-  const [uploadStatus, setUploadStatus] = useState('');
+  const [uploadStatus, setUploadStatus] = useState("");
   const [isGettingLocation, setIsGettingLocation] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const convertToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
+  const convertToBase64 = (file) =>
+    new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = () => resolve(reader.result);
       reader.onerror = (err) => reject(err);
     });
-  };
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -31,10 +29,10 @@ const UploadItem = () => {
 
   const getLocation = () => {
     setIsGettingLocation(true);
-    setUploadStatus('Getting location...');
-    
+    setUploadStatus("Getting location...");
+
     if (!navigator.geolocation) {
-      setUploadStatus('Geolocation is not supported by your browser');
+      setUploadStatus("Geolocation is not supported by your browser");
       setIsGettingLocation(false);
       return;
     }
@@ -42,16 +40,13 @@ const UploadItem = () => {
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
-        setGeoLocation({
-          lat: latitude,
-          lng: longitude
-        });
-        setUploadStatus('Location captured successfully!');
+        setGeoLocation({ lat: latitude, lng: longitude });
+        setUploadStatus("Location captured successfully!");
         setIsGettingLocation(false);
       },
       (error) => {
-        console.error('Location error:', error);
-        setUploadStatus('Failed to get location. Please enable location services.');
+        console.error("Location error:", error);
+        setUploadStatus("Failed to get location. Please enable location services.");
         setIsGettingLocation(false);
       },
       { timeout: 10000 }
@@ -61,50 +56,32 @@ const UploadItem = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (isSubmitting) return; // 🚫 Prevent multiple clicks
-    setIsSubmitting(true); // 🔒 Lock
-  
-    if (!image || image.trim() === '' || !placeDesc.trim() || !itemDesc.trim() || !contact.trim()) {
-      setUploadStatus('Please fill in all fields.');
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    if (!image || !placeDesc.trim() || !itemDesc.trim() || !contact.trim()) {
+      setUploadStatus("Please fill in all fields.");
+      setIsSubmitting(false);
       return;
     }
-    
+
     if (!geoLocation) {
-      setUploadStatus('Please capture your location');
+      setUploadStatus("Please capture your location");
+      setIsSubmitting(false);
       return;
     }
-  
+
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setUploadStatus('⚠️ You must be logged in to upload.');
-        return;
-      }
-  
       const response = await API.post(
-        'api/upload',
-        {
-          image,
-          placeDesc,
-          itemDesc,
-          contact,
-          geoLocation
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
+        "api/upload",
+        { image, placeDesc, itemDesc, contact, geoLocation }
       );
-  
       if (response.status === 200) {
-        setUploadStatus('✅ Upload successful!');
-        // Reset form
+        setUploadStatus("✅ Upload successful!");
         setImage(null);
-        setPlaceDesc('');
-        setItemDesc('');
-        setContact('');
+        setPlaceDesc("");
+        setItemDesc("");
+        setContact("");
         setGeoLocation(null);
       } else {
         setUploadStatus(`❌ Upload failed: ${response.data.message}`);
@@ -114,13 +91,13 @@ const UploadItem = () => {
       if (err.response) {
         setUploadStatus(`⚠️ Error: ${err.response.data.message}`);
       } else {
-        setUploadStatus('⚠️ Network error. Please try again.');
+        setUploadStatus("⚠️ Network error. Please try again.");
       }
     } finally {
-    setIsSubmitting(false); // 🔓 Unlock after response
-  }
-};
-  
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-2xl font-semibold text-center mb-6 text-gray-700">
@@ -177,15 +154,18 @@ const UploadItem = () => {
             onClick={getLocation}
             disabled={isGettingLocation}
             className={`w-full py-2 rounded ${
-              isGettingLocation 
-                ? 'bg-gray-400 cursor-not-allowed' 
-                : geoLocation 
-                  ? 'bg-green-500 hover:bg-green-600 text-white'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white'
+              isGettingLocation
+                ? "bg-gray-400 cursor-not-allowed"
+                : geoLocation
+                ? "bg-green-500 hover:bg-green-600 text-white"
+                : "bg-blue-600 hover:bg-blue-700 text-white"
             }`}
           >
-            {geoLocation ? '✅ Location Captured' : 
-             isGettingLocation ? 'Capturing Location...' : 'Capture Current Location'}
+            {geoLocation
+              ? "✅ Location Captured"
+              : isGettingLocation
+              ? "Capturing Location..."
+              : "Capture Current Location"}
           </button>
           {geoLocation && (
             <p className="mt-2 text-sm text-gray-600">
@@ -194,18 +174,17 @@ const UploadItem = () => {
           )}
         </div>
         <button
-  type="submit"
-  disabled={isSubmitting}
-  className={`w-full ${isSubmitting ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white py-2 rounded transition-colors`}
->
-  {isSubmitting ? 'Uploading...' : 'Submit'}
-</button>
-
+          type="submit"
+          disabled={isSubmitting}
+          className={`w-full ${
+            isSubmitting ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+          } text-white py-2 rounded transition-colors`}
+        >
+          {isSubmitting ? "Uploading..." : "Submit"}
+        </button>
       </form>
       {uploadStatus && (
-        <p className="mt-4 text-center text-sm font-medium text-gray-700">
-          {uploadStatus}
-        </p>
+        <p className="mt-4 text-center text-sm font-medium text-gray-700">{uploadStatus}</p>
       )}
     </div>
   );
