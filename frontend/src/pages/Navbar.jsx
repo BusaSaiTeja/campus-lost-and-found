@@ -8,8 +8,8 @@ function Navbar() {
     location.pathname === path ? "text-blue-600 font-semibold" : "text-gray-700";
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken"); // or whatever key you're using
-    navigate("/login"); // redirect to login after logout
+    localStorage.removeItem("token");
+    navigate("/login");
   };
 
   return (
@@ -22,6 +22,9 @@ function Navbar() {
         </Link>
         <Link to="/upload" className={`hover:text-blue-500 ${isActive("/upload")}`}>
           Upload
+        </Link>
+        <Link to="/myuploads" className={`hover:text-blue-500 ${isActive("/myuploads")}`}>
+          My Uploads
         </Link>
         <button
           onClick={handleLogout}

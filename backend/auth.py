@@ -1,9 +1,8 @@
 from flask import Blueprint, request, jsonify, current_app
 import jwt
 import datetime
-from models import User
-from db import db
 from functools import wraps
+from models import User  # Fixed import at top level
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -14,14 +13,12 @@ def token_required(f):
         if not token:
             return jsonify({'message': 'Token is missing!'}), 401
         try:
-            token = token.split()[1]  # Expecting "Bearer <token>"
-            payload = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
-            current_user = User.query.filter_by(username=payload['username']).first()
+            token = token.split()[1]  # Bearer <token>
+            data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=['HS256'])
+            current_user = User.find_by_username(data['username'])
             if not current_user:
                 return jsonify({'message': 'User not found!'}), 401
-        except jwt.ExpiredSignatureError:
-            return jsonify({'message': 'Token has expired!'}), 401
-        except jwt.InvalidTokenError:
+        except Exception as e:
             return jsonify({'message': 'Token is invalid!'}), 401
         return f(current_user, *args, **kwargs)
     return decorated
@@ -32,41 +29,39 @@ def register():
     username = data.get('username')
     password = data.get('password')
 
-    if not username or not password:
-        return jsonify({'message': 'Username and password are required'}), 400
-
-    if User.query.filter_by(username=username).first():
+    if User.find_by_username(username):
         return jsonify({'message': 'User already exists'}), 400
 
-    new_user = User(username=username)
-    new_user.set_password(password)
+    User.create_user(username, password)
 
-    db.session.add(new_user)
-    db.session.commit()
-
-    # Generate token upon successful registration
+    # Generate token after registration
     token = jwt.encode({
         'username': username,
         'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     }, current_app.config['SECRET_KEY'], algorithm='HS256')
 
+    if isinstance(token, bytes):
+        token = token.decode('utf-8')
+
     return jsonify({'message': 'User registered successfully', 'token': token})
+
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
+    print("Request from IP:", request.remote_addr)
+    print("Headers:", dict(request.headers))
+    print("JSON Data:", request.get_json())
+    
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
 
-    if not username or not password:
-        return jsonify({'message': 'Username and password are required'}), 400
-
-    user = User.query.filter_by(username=username).first()
-    if not user or not user.check_password(password):
+    user = User.find_by_username(username)
+    if not user or not User.check_password(user, password):
         return jsonify({'message': 'Invalid credentials'}), 401
 
     token = jwt.encode({
-        'username': user.username,
+        'username': user['username'],
         'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
     }, current_app.config['SECRET_KEY'], algorithm='HS256')
 
@@ -75,4 +70,4 @@ def login():
 @auth_bp.route('/verify_token', methods=['GET'])
 @token_required
 def verify_token(current_user):
-    return jsonify({'valid': True, 'user': current_user.username})
+    return jsonify({'valid': True, 'user': current_user['username']})

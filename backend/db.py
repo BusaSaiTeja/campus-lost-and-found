@@ -1,8 +1,3 @@
-from flask_sqlalchemy import SQLAlchemy
-
-db = SQLAlchemy()
-
-def init_db(app):
-    db.init_app(app)
-    with app.app_context():
-        db.create_all()
+def get_db():
+    from app import mongo  # import here to avoid circular import
+    return mongo.db
