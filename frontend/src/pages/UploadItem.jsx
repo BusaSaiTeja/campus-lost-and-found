@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import API from '../api';
 
 const UploadItem = () => {
   const [image, setImage] = useState(null);
@@ -80,8 +81,8 @@ const UploadItem = () => {
         return;
       }
   
-      const response = await axios.post(
-        'http://localhost:5000/api/upload',
+      const response = await API.post(
+        'api/upload',
         {
           image,
           placeDesc,

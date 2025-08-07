@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import Popup from "../components/popup";
+import API from "../api";
 
 function MyUploads() {
   const [uploads, setUploads] = useState([]);
@@ -18,7 +19,7 @@ function MyUploads() {
       }
       try {
         setLoading(true);
-        const res = await axios.get("http://localhost:5000/api/myuploads", {
+        const res = await API.get("api/myuploads", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -39,8 +40,8 @@ function MyUploads() {
 
   const handleClaim = async (id) => {
     try {
-      await axios.post(
-        `http://localhost:5000/api/mark-claimed/${id}`,
+      await API.post(
+        `api/mark-claimed/${id}`,
         {},
         {
           headers: {

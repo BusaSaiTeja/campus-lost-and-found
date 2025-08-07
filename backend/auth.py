@@ -48,6 +48,10 @@ def register():
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
+    print("Request from IP:", request.remote_addr)
+    print("Headers:", dict(request.headers))
+    print("JSON Data:", request.get_json())
+    
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')

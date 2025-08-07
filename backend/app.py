@@ -36,7 +36,7 @@ mongo = PyMongo(app)
 app.mongo = mongo
 
 # CORS
-CORS(app, supports_credentials=True)
+CORS(app, supports_credentials=True ,  origins=["http://localhost:5173",os.getenv('IP')])
 
 # Blueprints
 from auth import auth_bp
@@ -49,4 +49,4 @@ def index():
     return 'Flask Backend is running!'
 
 if __name__ == '__main__':
-    app.run(debug=True, use_reloader=False)
+    app.run(debug=True, host = '0.0.0.0', port=5000,use_reloader=False)

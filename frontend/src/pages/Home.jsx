@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Popup from "../components/popup";
+import API from "../api";
 
 function Home() {
   const [uploads, setUploads] = useState([]);
@@ -13,7 +14,7 @@ function Home() {
     const fetchUploads = async () => {
       try {
         setLoading(true);
-        const response = await axios.get("http://localhost:5000/api/uploads");
+        const response = await API.get("api/uploads");
         setUploads(response.data);
         setError(null);
       } catch (err) {
