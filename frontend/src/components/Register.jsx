@@ -15,16 +15,18 @@ export default function Register() {
     setError('');
     setSuccess('');
     try {
-      const response = await API.post('/api/register', { username, password });
-  
-      const token = response.data.token;
-  
-      if (token) {
-        localStorage.setItem('token', token); // Store JWT
+      const response = await API.post(
+        '/api/register', 
+        { username, password },
+        { withCredentials: true } // important for receiving HttpOnly cookie
+      );
+
+
+      if (response.data.access_token) {
         setSuccess('Registration successful! Redirecting...');
-        setTimeout(() => navigate('/'), 1500); // Redirect to /home
+        setTimeout(() => navigate('/'), 1500);
       } else {
-        setError('Registration succeeded but token not received');
+        setError('Registration succeeded but no access token received');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed');
@@ -43,7 +45,8 @@ export default function Register() {
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            required autoFocus
+            required
+            autoFocus
           />
           <input
             type="password"

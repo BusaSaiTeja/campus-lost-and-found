@@ -19,8 +19,8 @@ def upload_item(current_user):
         image_data = data.get('image')
         place_desc = data.get('placeDesc')
         item_desc = data.get('itemDesc')
-        contact = data.get('contact')  # Changed to contact
-        geo_location = data.get('geoLocation')  # New field for coordinates
+        contact = data.get('contact')
+        geo_location = data.get('geoLocation')
         uploaded_by_id = current_user['_id']
 
         # Validate required fields
@@ -86,11 +86,11 @@ def upload_item(current_user):
             "placeDesc": place_desc,
             "itemDesc": item_desc,
             "imageUrl": image_url,
-            "contact": contact,  # Store contact info
-            "location": location_geojson,  # Store as GeoJSON
+            "contact": contact,
+            "location": location_geojson,
             "timestamp": datetime.utcnow(),
             "status": "not claimed",
-            "uploadedBy": uploaded_by_id ,
+            "uploadedBy": uploaded_by_id,
             "username": current_user["username"]
         })
 
@@ -100,17 +100,15 @@ def upload_item(current_user):
         print("Full upload error:", traceback.format_exc())
         return jsonify({'message': str(e)}), 500
 
-# NEW ENDPOINT: Get all uploads
 @upload_bp.route('/uploads', methods=['GET'])
 def get_all_uploads():
     try:
         mongo = current_app.mongo
-        # Get all uploads sorted by timestamp (newest first)
         uploads_cursor = mongo.db.items.find({}).sort("timestamp", -1)
         
         uploads = []
         for u in uploads_cursor:
-            u['_id'] = str(u['_id'])  # convert ObjectId to string
+            u['_id'] = str(u['_id'])
             uploads.append(u)
         return jsonify(uploads), 200
     except Exception as e:

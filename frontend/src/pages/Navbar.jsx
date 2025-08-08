@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import API from "../api";
 
 function Navbar() {
   const location = useLocation();
@@ -7,8 +8,12 @@ function Navbar() {
   const isActive = (path) =>
     location.pathname === path ? "text-blue-600 font-semibold" : "text-gray-700";
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
+  const handleLogout = async () => {
+    try {
+      await API.post("/api/logout"); // cookies sent automatically
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
     navigate("/login");
   };
 
