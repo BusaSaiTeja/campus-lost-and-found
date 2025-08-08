@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import API from '../api';
+import API from '../api'; // Make sure this is Axios with baseURL set
 import './Auth.css';
 
 export default function Login() {
@@ -12,15 +12,21 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
     try {
-      const res = await API.post('/api/login', { username, password });
-      localStorage.setItem('token', res.data.token);
-      sessionStorage.setItem("user_id", res.data.user_id);
+      const res = await API.post(
+        '/api/login',
+        { username, password },
+        { withCredentials: true }  // Sends and allows cookies
+      );
+
+      console.log('Login success:', res.data);
+
+      // navigate to home
       navigate('/');
-      console.log("Login success:", res.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
-      console.error("Login failed:", err.response?.data || err.message);
+      console.error('Login failed:', err.response?.data || err.message);
     }
   };
 
@@ -35,7 +41,8 @@ export default function Login() {
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            required autoFocus
+            required
+            autoFocus
           />
           <input
             type="password"

@@ -1,6 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+}
+
 const Popup = ({ activeImage, setActiveImage }) => {
   const navigate = useNavigate();
 
@@ -8,7 +15,8 @@ const Popup = ({ activeImage, setActiveImage }) => {
 
   const handleRedirect = async () => {
   try {
-    const currentUserId = sessionStorage.getItem("user_id");
+    console.log(document.cookie);
+    const currentUserId = getCookie("user_id");
     const otherUserId = activeImage.uploadedBy?.$oid;
 
     console.log("currentUserId:", sessionStorage.getItem("user_id"));
