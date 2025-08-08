@@ -1,7 +1,47 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const Popup = ({ activeImage, setActiveImage }) => {
+  const navigate = useNavigate();
+
   if (!activeImage) return null;
+
+  const handleRedirect = async () => {
+  try {
+    const currentUserId = sessionStorage.getItem("user_id");
+    const otherUserId = activeImage.uploadedBy?.$oid;
+
+    console.log("currentUserId:", sessionStorage.getItem("user_id"));
+    console.log("otherUserId:", activeImage.uploadedBy);
+
+    if (!currentUserId || !otherUserId) {
+      console.error("Missing user IDs");
+      return;
+    }
+
+    // Call backend to get or create the chat
+    const res = await fetch("http://localhost:5000/api/chat/start", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user1: currentUserId,
+        user2: otherUserId
+      })
+    });
+
+    if (!res.ok) {
+      console.error("Failed to start chat");
+      return;
+    }
+
+    const data = await res.json();
+    console.log("Chat started with:", data.user1_name, "and", data.user2_name);
+    // Redirect to chat window
+    navigate(`/chat/${data.chatId}`);
+  } catch (err) {
+    console.error("Error starting chat:", err);
+  }
+};
 
   return (
     <div
@@ -54,6 +94,13 @@ const Popup = ({ activeImage, setActiveImage }) => {
             <strong>Status:</strong> {activeImage.status?.toUpperCase() || "N/A"}
           </p>
         </div>
+
+        <button
+          onClick={handleRedirect}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Chat
+        </button>
       </div>
     </div>
   );
