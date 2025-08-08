@@ -5,7 +5,8 @@ import Login from './components/Login';
 import Register from './components/Register';
 import ProtectedRoute from './components/Route';
 import UploadItem from './pages/UploadItem';
-import MyUploads from "./pages/MyUploads"; // import
+import MyUploads from "./pages/MyUploads"; 
+import ChatPage from './pages/ChatWindow';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
         />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/chat/:chatId" element={<ChatPage />} />
       </Routes>
     </Router>
   );
