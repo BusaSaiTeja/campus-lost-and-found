@@ -18,7 +18,7 @@ export default function Login() {
         '/api/login',
         { username, password },
         { withCredentials: true }  // Sends and allows cookies
-      );
+      ); 
 
       console.log('Login success:', res.data);
 

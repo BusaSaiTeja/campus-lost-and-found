@@ -6,6 +6,7 @@ import cloudinary.uploader
 from bson import ObjectId
 from auth import token_required
 import traceback
+from notifications import send_push_notification
 
 upload_bp = Blueprint('upload', __name__)
 
@@ -94,11 +95,25 @@ def upload_item(current_user):
             "username": current_user["username"]
         })
 
+        subscriptions = list(mongo.db.subscriptions.find({}))
+        notification_payload = {
+            "title": "New Lost & Found Item",
+            "body": f"{current_user['username']} uploaded a new item: {item_desc}",
+            "url": "/"  # You can customize the URL to open on click
+        }
+
+        for sub in subscriptions:
+            try:
+                send_push_notification(sub, notification_payload)
+            except Exception as e:
+                print(f"Failed to send notification to {sub.get('endpoint')}: {e}")
+
         return jsonify({"message": "Item uploaded successfully"}), 200
 
     except Exception as e:
         print("Full upload error:", traceback.format_exc())
         return jsonify({'message': str(e)}), 500
+
 
 @upload_bp.route('/uploads', methods=['GET'])
 def get_all_uploads():

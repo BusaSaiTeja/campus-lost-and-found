@@ -9,9 +9,12 @@ export default function ProtectedRoute({ children }) {
   useEffect(() => {
     const verifyAuth = async () => {
       try {
+        console.log("Verifying auth...");
         await API.get("/api/verify_token"); // cookies sent automatically
+        console.log("Auth verified");
         setIsAuth(true);
-      } catch {
+      } catch (err) {
+        console.log("Auth failed:", err.response?.status || err.message);
         setIsAuth(false);
       }
     };

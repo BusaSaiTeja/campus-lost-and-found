@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import API from "../api";
 import Popup from "../components/popup";
+import { subscribeUser } from "../utils/pushNotifications";
 
 function Home() {
   const [uploads, setUploads] = useState([]);
@@ -10,6 +11,23 @@ function Home() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    const registerSWAndSubscribe = async () => {
+      if ('serviceWorker' in navigator) {
+        try {
+          const registration = await navigator.serviceWorker.register('/service-worker.js');
+          console.log('Service Worker registered:', registration);
+
+          if ('PushManager' in window) {
+            await subscribeUser();
+          }
+        } catch (err) {
+          console.error('Service Worker registration failed:', err);
+        }
+      } else {
+        console.warn('Service Worker not supported');
+      }
+    };
+
     const fetchUploads = async () => {
       try {
         setLoading(true);
@@ -28,7 +46,12 @@ function Home() {
       }
     };
 
-    fetchUploads();
+    const init = async () => {
+      await registerSWAndSubscribe();
+      await fetchUploads();
+    };
+
+    init();
   }, []);
 
   const filteredUploads = uploads.filter((item) => {

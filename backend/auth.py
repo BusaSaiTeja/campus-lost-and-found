@@ -57,8 +57,8 @@ def register():
     refresh_token = create_refresh_token(username)
 
     response = make_response(jsonify({'access_token': access_token}))
-    response.set_cookie('access_token', access_token, httponly=True, samesite='Strict', secure=False)  # Set secure=True in prod
-    response.set_cookie('refresh_token', refresh_token, httponly=True, samesite='Strict', secure=False)
+    response.set_cookie('access_token', access_token, httponly=True, samesite='None', secure=True)  # Set secure=True in prod
+    response.set_cookie('refresh_token', refresh_token, httponly=True, samesite='None', secure=True)
     return response
 
 @auth_bp.route('/login', methods=['POST'])
@@ -75,8 +75,8 @@ def login():
     refresh_token = create_refresh_token(username)
 
     response = make_response(jsonify({'message': 'Login successful'}))
-    response.set_cookie('access_token', access_token, httponly=True, samesite='Lax', secure=False)
-    response.set_cookie('refresh_token', refresh_token, httponly=True, samesite='Lax', secure=False)
+    response.set_cookie('access_token', access_token, httponly=True, samesite='None', secure=True)
+    response.set_cookie('refresh_token', refresh_token, httponly=True, samesite='None', secure=True)
     return response
 
 @auth_bp.route('/refresh', methods=['POST'])
@@ -93,7 +93,7 @@ def refresh():
 
         new_access_token = create_access_token(username)
         response = make_response(jsonify({'message': 'Token refreshed'}))
-        response.set_cookie('access_token', new_access_token, httponly=True, samesite='Lax', secure=False)
+        response.set_cookie('access_token', new_access_token, httponly=True, samesite='None', secure=True)
         return response
     except jwt.ExpiredSignatureError:
         return jsonify({'message': 'Refresh token expired'}), 401
@@ -103,8 +103,8 @@ def refresh():
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
     response = make_response(jsonify({'message': 'Logged out'}))
-    response.set_cookie('access_token', '', expires=0, httponly=True, samesite='Strict', secure=False)
-    response.set_cookie('refresh_token', '', expires=0, httponly=True, samesite='Strict', secure=False)
+    response.set_cookie('access_token', '', expires=0, httponly=True, samesite='None', secure=True)
+    response.set_cookie('refresh_token', '', expires=0, httponly=True, samesite='None', secure=True)
     return response
 
 @auth_bp.route('/verify_token', methods=['GET'])
