@@ -10,8 +10,8 @@ export default function ProtectedRoute({ children }) {
     const verifyAuth = async () => {
       try {
         console.log("Verifying auth...");
-        await API.get("/api/verify_token"); // cookies sent automatically
-        console.log("Auth verified");
+        const res = await API.get("/api/verify_token", { withCredentials: true });
+        console.log("Auth verified:", res.data);
         setIsAuth(true);
       } catch (err) {
         console.log("Auth failed:", err.response?.status || err.message);
@@ -20,6 +20,7 @@ export default function ProtectedRoute({ children }) {
     };
     verifyAuth();
   }, []);
+  
 
   if (isAuth === null) return <div>Loading...</div>;
   if (!isAuth) return <Navigate to="/login" replace />;
