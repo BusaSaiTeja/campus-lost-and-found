@@ -59,9 +59,9 @@ def register():
     session['user_id'] = str(new_user_id)
 
     response = make_response(jsonify({'access_token': access_token}))
-    response.set_cookie('access_token', access_token, httponly=True, samesite='Lax', secure=False)
-    response.set_cookie('refresh_token', refresh_token, httponly=True, samesite='Lax', secure=False)
-    response.set_cookie('user_id', str(user['_id']), samesite='Lax', secure=False, httponly=False)
+    response.set_cookie('access_token', access_token, httponly=True, samesite='None', secure=True)
+    response.set_cookie('refresh_token', refresh_token, httponly=True, samesite='None', secure=True)
+    response.set_cookie('user_id', str(user['_id']), samesite='None', secure=True, httponly=True)
 
     return response
 
@@ -81,9 +81,9 @@ def login():
     session['user_id'] = str(user['_id'])
 
     response = make_response(jsonify({'message': 'Login successful'}))
-    response.set_cookie('access_token', access_token, httponly=True, samesite='Lax', secure=False)
-    response.set_cookie('refresh_token', refresh_token, httponly=True, samesite='Lax', secure=False)
-    response.set_cookie('user_id', str(user['_id']), samesite='Lax', secure=False, httponly=False)
+    response.set_cookie('access_token', access_token, httponly=True, samesite='None', secure=True)
+    response.set_cookie('refresh_token', refresh_token, httponly=True, samesite='None', secure=True)
+    response.set_cookie('user_id', str(user['_id']), samesite='None', secure=True, httponly=True)
 
     return response
 
@@ -111,9 +111,9 @@ def refresh():
 @auth_bp.route('/logout', methods=['POST'])
 def logout():
     response = make_response(jsonify({'message': 'Logged out'}))
-    response.set_cookie('access_token', '', expires=0, httponly=True, samesite='Strict', secure=False)
-    response.set_cookie('refresh_token', '', expires=0, httponly=True, samesite='Strict', secure=False)
-    response.set_cookie('user_id', '', expires=0, httponly=False, samesite='Lax', secure=True)
+    response.set_cookie('access_token', '', expires=0, httponly=True, samesite='None', secure=True)
+    response.set_cookie('refresh_token', '', expires=0, httponly=True, samesite='None', secure=True)
+    response.set_cookie('user_id', '', expires=0, httponly=True, samesite='None', secure=True)
     return response
 
 @auth_bp.route('/verify_token', methods=['GET'])
