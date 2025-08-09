@@ -61,7 +61,7 @@ def register():
     response = make_response(jsonify({'access_token': access_token}))
     response.set_cookie('access_token', access_token, httponly=True, samesite='None', secure=True)
     response.set_cookie('refresh_token', refresh_token, httponly=True, samesite='None', secure=True)
-    response.set_cookie('user_id', str(user['_id']), samesite='None', secure=True, httponly=True)
+    response.set_cookie('user_id', str(new_user_id), samesite='None', secure=True, httponly=False)
 
     return response
 
@@ -83,7 +83,7 @@ def login():
     response = make_response(jsonify({'message': 'Login successful'}))
     response.set_cookie('access_token', access_token, httponly=True, samesite='None', secure=True)
     response.set_cookie('refresh_token', refresh_token, httponly=True, samesite='None', secure=True)
-    response.set_cookie('user_id', str(user['_id']), samesite='None', secure=True, httponly=True)
+    response.set_cookie('user_id', str(user['_id']), samesite='None', secure=True, httponly=False)
 
     return response
 

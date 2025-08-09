@@ -1,14 +1,24 @@
 import { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 import { useParams } from "react-router-dom";
+import API from "../api"; // Adjust path as needed
 
-const socket = io("http://localhost:5000"); // backend URL
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+}
+
+const socket = io("https://campusbackend.loca.lt", {
+  withCredentials: true,
+});
 
 export default function ChatWindow() {
   const { chatId } = useParams();
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
-  const currentUserId = sessionStorage.getItem("user_id");
+  const currentUserId = getCookie("user_id");
   const chatEndRef = useRef(null);
 
   // Auto-scroll to bottom
@@ -18,14 +28,14 @@ export default function ChatWindow() {
 
   // Load old messages + join room
   useEffect(() => {
-    fetch(`http://localhost:5000/api/chat/${chatId}/messages`)
-      .then(res => res.json())
-      .then(data => setMessages(data.messages || []));
+    API.get(`/api/chat/${chatId}/messages`)
+      .then((res) => setMessages(res.data.messages || []))
+      .catch((err) => console.error("Error fetching messages:", err));
 
     socket.emit("join", { chatId });
 
     socket.on("receive_message", (msg) => {
-      setMessages(prev => [...prev, msg]);
+      setMessages((prev) => [...prev, msg]);
     });
 
     return () => {
@@ -33,18 +43,18 @@ export default function ChatWindow() {
     };
   }, [chatId]);
 
-  // Send message (no optimistic update)
+  // Send message
   const sendMessage = () => {
     if (!text.trim()) return;
 
     const newMsg = {
       chatId,
       sender: currentUserId,
-      text
+      text,
     };
 
     socket.emit("send_message", newMsg);
-    setText(""); // clear input only
+    setText("");
   };
 
   return (
@@ -60,12 +70,9 @@ export default function ChatWindow() {
                 isCurrentUser ? "ml-auto items-end" : "mr-auto items-start"
               }`}
             >
-              {/* Sender ID */}
               <span className="text-xs text-gray-500 mb-1">
                 {isCurrentUser ? "You" : m.sender_name}
               </span>
-
-              {/* Chat Bubble */}
               <div
                 className={`px-4 py-2 rounded-2xl shadow-md ${
                   isCurrentUser

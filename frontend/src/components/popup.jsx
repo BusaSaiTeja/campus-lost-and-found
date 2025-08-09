@@ -1,10 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import API from "../api"; // Adjust path as needed
 
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
+  if (parts.length === 2) return parts.pop().split(";").shift();
   return null;
 }
 
@@ -14,42 +15,29 @@ const Popup = ({ activeImage, setActiveImage }) => {
   if (!activeImage) return null;
 
   const handleRedirect = async () => {
-  try {
-    console.log(document.cookie);
-    const currentUserId = getCookie("user_id");
-    const otherUserId = activeImage.uploadedBy?.$oid;
+    try {
+      const verifyRes = await API.get("/api/verify_token");
+      const currentUserId = verifyRes.data.user_id;
+      const otherUserId = activeImage.uploadedBy?.$oid;
 
-    console.log("currentUserId:", sessionStorage.getItem("user_id"));
-    console.log("otherUserId:", activeImage.uploadedBy);
+      console.log("currentUserId:", currentUserId);
+      console.log("otherUserId:", otherUserId);
 
-    if (!currentUserId || !otherUserId) {
-      console.error("Missing user IDs");
-      return;
-    }
+      if (!currentUserId || !otherUserId) {
+        console.error("Missing user IDs");
+        return;
+      }
 
-    // Call backend to get or create the chat
-    const res = await fetch("http://localhost:5000/api/chat/start", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
+      const res = await API.post("/api/chat/start", {
         user1: currentUserId,
-        user2: otherUserId
-      })
-    });
+        user2: otherUserId,
+      });
 
-    if (!res.ok) {
-      console.error("Failed to start chat");
-      return;
+      navigate(`/chat/${res.data.chatId}`);
+    } catch (err) {
+      console.error("Error starting chat:", err);
     }
-
-    const data = await res.json();
-    console.log("Chat started with:", data.user1_name, "and", data.user2_name);
-    // Redirect to chat window
-    navigate(`/chat/${data.chatId}`);
-  } catch (err) {
-    console.error("Error starting chat:", err);
-  }
-};
+  };
 
   return (
     <div
