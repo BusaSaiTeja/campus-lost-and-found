@@ -9,14 +9,18 @@ export default function ProtectedRoute({ children }) {
   useEffect(() => {
     const verifyAuth = async () => {
       try {
-        await API.get("/api/verify_token", { withCredentials: true }); // cookies sent automatically
+        console.log("Verifying auth...");
+        const res = await API.get("/api/verify_token", { withCredentials: true });
+        console.log("Auth verified:", res.data);
         setIsAuth(true);
-      } catch {
+      } catch (err) {
+        console.log("Auth failed:", err.response?.status || err.message);
         setIsAuth(false);
       }
     };
     verifyAuth();
   }, []);
+  
 
   if (isAuth === null) return <div>Loading...</div>;
   if (!isAuth) return <Navigate to="/login" replace />;

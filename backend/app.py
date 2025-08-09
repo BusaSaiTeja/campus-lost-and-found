@@ -27,7 +27,13 @@ cloudinary.config(
     api_secret=os.getenv('CLOUDINARY_API_SECRET')
 )
 
-# Check MongoDB connection manually (optional)
+private_key = os.getenv('VAPID_PRIVATE_KEY')
+if private_key:
+    private_key = private_key.replace('\\n', '\n')  # Convert literal \n to newline characters
+app.config['VAPID_PRIVATE_KEY'] = private_key
+app.config['VAPID_CLAIMS_EMAIL'] = os.getenv('VAPID_CLAIMS_EMAIL')
+
+# Mongo Connection Check
 try:
     mongo_client = MongoClient(app.config['MONGO_URI'], tlsCAFile=certifi.where())
     mongo_client.admin.command('ping')
@@ -39,14 +45,15 @@ except ConnectionFailure as e:
 mongo = PyMongo(app)
 app.mongo = mongo
 
-# Setup CORS for frontend URLs
-CORS(app, supports_credentials=True, origins=["http://localhost:5173", os.getenv('IP')])
+# CORS
+CORS(app, supports_credentials=True, origins=["https://campusfrontend.loca.lt"])
 
 # Import blueprints and init functions
 from chat import chat_bp, init_socketio, init_chat
 from auth import auth_bp
 from upload import upload_bp
-
+from notifications import notifications_bp
+app.register_blueprint(notifications_bp ,url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/api')
 app.register_blueprint(upload_bp, url_prefix='/api')
 app.register_blueprint(chat_bp, url_prefix='/api')

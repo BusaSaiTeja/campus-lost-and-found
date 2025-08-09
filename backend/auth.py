@@ -101,7 +101,7 @@ def refresh():
 
         new_access_token = create_access_token(username)
         response = make_response(jsonify({'message': 'Token refreshed'}))
-        response.set_cookie('access_token', new_access_token, httponly=True, samesite='Lax', secure=False)
+        response.set_cookie('access_token', new_access_token, httponly=True, samesite='None', secure=True)
         return response
     except jwt.ExpiredSignatureError:
         return jsonify({'message': 'Refresh token expired'}), 401
