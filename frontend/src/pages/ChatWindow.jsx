@@ -12,7 +12,9 @@ function getCookie(name) {
 
 const socket = io("https://campusbackend.loca.lt", {
   withCredentials: true,
+  transports: ["websocket", "polling"]
 });
+
 
 export default function ChatWindow() {
   const { chatId } = useParams();

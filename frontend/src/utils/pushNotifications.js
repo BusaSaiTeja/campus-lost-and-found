@@ -1,45 +1,56 @@
 import API from "../api";
 
-const PUBLIC_VAPID_KEY = 'BEnKYeEPRVDTPaX7NzTtlxlhWCF2jxLe6QwjyLWX_-LCEl5lMgF1oC4UB2SHNHm8X7dbHuow2wkNjwFghqbY26U'; // Replace with your VAPID public key from backend
-
 function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
   const rawData = atob(base64);
-  return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
+  return Uint8Array.from([...rawData].map((c) => c.charCodeAt(0)));
 }
 
 export async function subscribeUser() {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    console.warn('Push messaging is not supported');
-    return;
-  }
-
-  if (Notification.permission !== 'granted') {
-    const permission = await Notification.requestPermission();
-    if (permission !== 'granted') {
-      console.log('Notification permission denied');
+  try {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      console.warn("Push messaging not supported");
       return;
     }
-  }
 
-  try {
+    if (Notification.permission !== "granted") {
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        console.log("Notification permission denied");
+        return;
+      }
+    }
+
+    // Fetch VAPID key from backend
+    const { data } = await API.get("/vapid_public_key");
+    const vapidKey = data.key;
+
     const registration = await navigator.serviceWorker.ready;
     let subscription = await registration.pushManager.getSubscription();
 
     if (!subscription) {
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(PUBLIC_VAPID_KEY),
+        applicationServerKey: urlBase64ToUint8Array(vapidKey),
       });
     }
 
-    console.log('User is subscribed:', subscription);
+    // Check if subscription is already saved in localStorage
+    const savedSubscription = localStorage.getItem("pushSubscription");
+    const currentSubscriptionString = JSON.stringify(subscription);
 
-    await API.post('/api/save-subscription', subscription, { withCredentials: true });
+    if (savedSubscription !== currentSubscriptionString) {
+      // Save subscription to backend only if changed or new
+      await API.post("/api/save-subscription", subscription, { withCredentials: true });
+      localStorage.setItem("pushSubscription", currentSubscriptionString);
+      console.log("User subscribed to push notifications and subscription saved");
+    } else {
+      console.log("Subscription already saved, no need to save again");
+    }
 
     return subscription;
   } catch (error) {
-    console.error('Failed to subscribe the user:', error);
+    console.error("Failed to subscribe the user:", error);
   }
 }

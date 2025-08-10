@@ -3,6 +3,7 @@ import datetime
 from functools import wraps
 from models import User
 from flask import request, jsonify, session, current_app, Blueprint, make_response, session
+from flask_cors import CORS, cross_origin
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -41,7 +42,9 @@ def token_required(f):
     return decorated
 
 @auth_bp.route('/register', methods=['POST'])
+@cross_origin(origins="https://campusfrontend.loca.lt", supports_credentials=True)
 def register():
+    print("register is called")
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')
@@ -66,7 +69,9 @@ def register():
     return response
 
 @auth_bp.route('/login', methods=['POST'])
+@cross_origin(origins="https://campusfrontend.loca.lt", supports_credentials=True)
 def login():
+    print("login is called")
     data = request.get_json()
     username = data.get('username')
     password = data.get('password')

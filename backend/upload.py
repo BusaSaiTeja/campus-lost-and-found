@@ -7,6 +7,8 @@ from bson import ObjectId
 from auth import token_required
 import traceback
 from notifications import send_push_notification
+import re
+from urllib.parse import urlparse, unquote
 
 upload_bp = Blueprint('upload', __name__)
 
@@ -179,3 +181,4 @@ def mark_as_claimed(current_user, upload_id):
     except Exception as e:
         print("Error updating status:", e)
         return jsonify({"message": "Failed to mark as claimed"}), 500
+
