@@ -26,7 +26,7 @@ def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = request.cookies.get('access_token')  # get token from cookie
-        print("token is :", token)
+        #print("token is :", token)
         if not token:
             return jsonify({'message': 'Token is missing!'}), 401
         try:
@@ -64,7 +64,7 @@ def register():
     response = make_response(jsonify({'access_token': access_token}))
     response.set_cookie('access_token', access_token, httponly=True, samesite='None', secure=True)
     response.set_cookie('refresh_token', refresh_token, httponly=True, samesite='None', secure=True)
-    response.set_cookie('user_id', str(new_user_id), samesite='None', secure=True, httponly=False)
+    response.set_cookie('user_id', str(new_user_id), samesite='None', secure=True, domain='.loca.lt' , httponly=False)
 
     return response
 
@@ -88,11 +88,12 @@ def login():
     response = make_response(jsonify({'message': 'Login successful'}))
     response.set_cookie('access_token', access_token, httponly=True, samesite='None', secure=True)
     response.set_cookie('refresh_token', refresh_token, httponly=True, samesite='None', secure=True)
-    response.set_cookie('user_id', str(user['_id']), samesite='None', secure=True, httponly=False)
+    response.set_cookie('user_id', str(user['_id']), samesite='None', secure=True, domain='.loca.lt' ,httponly=False)
 
     return response
 
 @auth_bp.route('/refresh', methods=['POST'])
+@cross_origin(origins="https://campusfrontend.loca.lt", supports_credentials=True)
 def refresh():
     refresh_token = request.cookies.get('refresh_token')
     if not refresh_token:

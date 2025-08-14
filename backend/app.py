@@ -58,7 +58,6 @@ CORS(
     supports_credentials=True,
     origins=["https://campusfrontend.loca.lt"],
     resources={r"/*": {"origins": "https://campusfrontend.loca.lt"}},
-    send_wildcard=False
 )
 
 # Import blueprints after app is configured

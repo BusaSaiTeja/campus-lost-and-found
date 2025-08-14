@@ -5,8 +5,11 @@ import Login from './components/Login';
 import Register from './components/Register';
 import ProtectedRoute from './components/Route';
 import UploadItem from './pages/UploadItem';
-import MyUploads from "./pages/MyUploads"; 
-import ChatPage from './pages/ChatWindow';
+import MyUploads from './pages/MyUploads';
+import MyChats from './pages/MyChats';
+import Profile from './pages/Profile';
+import Navbar from './pages/Navbar';
+import ChatWindow from './pages/ChatWindow';
 
 function App() {
   return (
@@ -36,9 +39,25 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/mychats"
+          element={
+            <ProtectedRoute>
+              <MyChats />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/chat/:chatId" element={<ChatWindow />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/chat/:chatId" element={<ChatPage />} />
       </Routes>
     </Router>
   );

@@ -10,7 +10,7 @@ function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await API.post("/api/logout"); // cookies sent automatically
+      await API.post("/api/logout");
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -20,7 +20,6 @@ function Navbar() {
   return (
     <nav className="bg-white shadow-md px-6 py-4 flex justify-between items-center">
       <div className="text-xl font-bold text-blue-700">MyApp</div>
-
       <div className="space-x-6 flex items-center">
         <Link to="/" className={`hover:text-blue-500 ${isActive("/")}`}>
           Home
@@ -30,6 +29,12 @@ function Navbar() {
         </Link>
         <Link to="/myuploads" className={`hover:text-blue-500 ${isActive("/myuploads")}`}>
           My Uploads
+        </Link>
+        <Link to="/mychats" className={`hover:text-blue-500 ${isActive("/mychats")}`}>
+          MyChats
+        </Link>
+        <Link to="/profile" className={`hover:text-blue-500 ${isActive("/profile")}`}>
+          Profile
         </Link>
         <button
           onClick={handleLogout}
