@@ -65,7 +65,9 @@ from chat import chat_bp, init_socketio, init_chat
 from auth import auth_bp
 from upload import upload_bp
 from notifications import notifications_bp
+from profile import profile_bp
 
+app.register_blueprint(profile_bp, url_prefix="/api")
 app.register_blueprint(notifications_bp, url_prefix='/api')
 app.register_blueprint(auth_bp, url_prefix='/api')
 app.register_blueprint(upload_bp, url_prefix='/api')

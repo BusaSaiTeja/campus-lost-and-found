@@ -1,8 +1,25 @@
 from flask import Blueprint, request, jsonify, current_app
 from pywebpush import webpush, WebPushException
 import json
+from auth import token_required
 
 notifications_bp = Blueprint('notifications', __name__)
+
+@notifications_bp.route("/unsubscribe", methods=["POST"])
+@token_required
+def unsubscribe(current_user):
+    try:
+        data = request.get_json()
+        endpoint = data.get("endpoint")
+        if not endpoint:
+            return jsonify({"message": "No endpoint provided"}), 400
+
+        mongo = current_app.mongo
+        mongo.db.subscriptions.delete_one({"endpoint": endpoint})
+        return jsonify({"message": "Unsubscribed successfully"}), 200
+    except Exception as e:
+        print("Unsubscribe error:", e)
+        return jsonify({"message": "Failed to unsubscribe"}), 500
 
 @notifications_bp.route('/save-subscription', methods=['POST'])
 def save_subscription():
