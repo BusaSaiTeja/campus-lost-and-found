@@ -25,10 +25,10 @@ export default function ChatWindow() {
 
   // -------------------- Socket Initialization --------------------
   useEffect(() => {
-    const socketUrl = import.meta.env.VITE_API_URL || "https://campusbackend.loca.lt";
+    const socketUrl = import.meta.env.VITE_API_URL;
     const newSocket = io(socketUrl, {
       withCredentials: true,
-      transports: ["websocket", "polling"],
+      transports: ["websocket"],
       path: "/socket.io",
       reconnection: true,
       reconnectionAttempts: 10,
@@ -125,7 +125,7 @@ export default function ChatWindow() {
 
     setMessages((prev) => [...prev, messageData]);
     scrollToBottom();
-
+    console.log("message sent" , messageData) ;
     socket.emit("send_message", messageData);
     setText("");
   };

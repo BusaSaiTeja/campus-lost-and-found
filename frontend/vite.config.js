@@ -1,16 +1,21 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
+const HOST = process.env.VITE_API_HOST || 'localhost';
 
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true, // Allows LAN or tunneling
+    host: true,
     port: 5173,
-    strictPort: true, // Ensures the port doesn't randomly change
-    allowedHosts: ['campusfrontend.loca.lt'], // Trust LocalTunnel subdomain
+    strictPort: true,
+    allowedHosts: [HOST], // use process.env here
     hmr: {
-      protocol: 'wss', // Use secure WebSocket
-      host: 'campusfrontend.loca.lt', // Match your tunnel subdomain
+      protocol: 'wss',
+      host: HOST,
     },
   },
 });

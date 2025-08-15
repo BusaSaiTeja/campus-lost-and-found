@@ -4,7 +4,7 @@ from functools import wraps
 from models import User
 from flask import request, jsonify, session, current_app, Blueprint, make_response, session
 from flask_cors import CORS, cross_origin
-
+import os 
 auth_bp = Blueprint('auth', __name__)
 
 ACCESS_TOKEN_EXPIRES_MINUTES = 15
@@ -42,7 +42,7 @@ def token_required(f):
     return decorated
 
 @auth_bp.route('/register', methods=['POST'])
-@cross_origin(origins="https://campusfrontend.loca.lt", supports_credentials=True)
+@cross_origin(origins=os.getenv('frontend'), supports_credentials=True)
 def register():
     print("register is called")
     data = request.get_json()
@@ -69,7 +69,7 @@ def register():
     return response
 
 @auth_bp.route('/login', methods=['POST'])
-@cross_origin(origins="https://campusfrontend.loca.lt", supports_credentials=True)
+@cross_origin(origins=os.getenv('frontend'), supports_credentials=True)
 def login():
     print("login is called")
     data = request.get_json()
@@ -93,7 +93,7 @@ def login():
     return response
 
 @auth_bp.route('/refresh', methods=['POST'])
-@cross_origin(origins="https://campusfrontend.loca.lt", supports_credentials=True)
+@cross_origin(origins=os.getenv('frontend'), supports_credentials=True)
 def refresh():
     refresh_token = request.cookies.get('refresh_token')
     if not refresh_token:

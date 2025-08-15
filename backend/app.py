@@ -20,7 +20,7 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 # SocketIO (only allow the frontend host)
 socketio = SocketIO(
     app,
-    cors_allowed_origins=["https://campusfrontend.loca.lt"],
+    cors_allowed_origins=[os.getenv('frontend')],
     async_mode="eventlet"
 )
 app.socketio = socketio
@@ -56,8 +56,8 @@ app.mongo = mongo
 CORS(
     app,
     supports_credentials=True,
-    origins=["https://campusfrontend.loca.lt"],
-    resources={r"/*": {"origins": "https://campusfrontend.loca.lt"}},
+    origins=[os.getenv('frontend')],
+    resources={r"/*": {"origins": os.getenv('frontend')}},
 )
 
 # Import blueprints after app is configured

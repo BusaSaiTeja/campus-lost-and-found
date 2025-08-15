@@ -159,10 +159,12 @@ def init_socketio(sio):
                 "body": text,
                 "url": f"/chat/{chat_id}"  # Link to open the chat
             }
-            
+            print("test1" , len(subscriptions))
             for sub in subscriptions:
                 try:
+                    print("test2")
                     send_push_notification(sub, notification_payload)
+                    print("test3")
                 except Exception as e:
                     print(f"Failed to send chat notification to {sub.get('endpoint')}: {e}")
 
