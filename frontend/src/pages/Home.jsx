@@ -115,9 +115,7 @@ function Home() {
                     ? `Lat: ${item.location.coordinates[1]}, Lng: ${item.location.coordinates[0]}`
                     : "N/A"}
                 </p>
-                <p className="text-gray-600">
-                  <strong>Contact:</strong> {item.contact || "N/A"}
-                </p>
+                
                 <p
                   className={`text-xs mt-1 font-semibold ${
                     item.status === "claimed" ? "text-green-600" : "text-red-600"

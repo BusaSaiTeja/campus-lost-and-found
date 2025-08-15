@@ -85,9 +85,7 @@ const Popup = ({ activeImage, setActiveImage }) => {
         )}
 
         <div className="text-sm text-gray-800 space-y-2">
-          <p><strong>ID:</strong> {activeImage._id || "N/A"}</p>
           <p><strong>Uploaded By:</strong> {activeImage.username || "Anonymous"}</p>
-          <p><strong>Contact:</strong> {activeImage.contact || "N/A"}</p>
           <p><strong>Place Description:</strong> {activeImage.placeDesc || "N/A"}</p>
           <p><strong>Item Description:</strong> {activeImage.itemDesc || "N/A"}</p>
           <p>

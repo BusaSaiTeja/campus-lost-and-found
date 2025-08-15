@@ -19,7 +19,7 @@ function Navbar() {
 
   return (
     <nav className="bg-white shadow-md px-6 py-4 flex justify-between items-center">
-      <div className="text-xl font-bold text-blue-700">MyApp</div>
+      <div className="text-xl font-bold text-blue-700">Campus Lost and Found</div>
       <div className="space-x-6 flex items-center">
         <Link to="/" className={`hover:text-blue-500 ${isActive("/")}`}>
           Home

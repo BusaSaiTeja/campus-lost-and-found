@@ -5,7 +5,6 @@ const UploadItem = () => {
   const [image, setImage] = useState(null);
   const [placeDesc, setPlaceDesc] = useState("");
   const [itemDesc, setItemDesc] = useState("");
-  const [contact, setContact] = useState("");
   const [geoLocation, setGeoLocation] = useState(null);
   const [uploadStatus, setUploadStatus] = useState("");
   const [isGettingLocation, setIsGettingLocation] = useState(false);
@@ -59,7 +58,7 @@ const UploadItem = () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    if (!image || !placeDesc.trim() || !itemDesc.trim() || !contact.trim()) {
+    if (!image || !placeDesc.trim() || !itemDesc.trim()) {
       setUploadStatus("Please fill in all fields.");
       setIsSubmitting(false);
       return;
@@ -74,14 +73,13 @@ const UploadItem = () => {
     try {
       const response = await API.post(
         "api/upload",
-        { image, placeDesc, itemDesc, contact, geoLocation }
+        { image, placeDesc, itemDesc, geoLocation }
       );
       if (response.status === 200) {
         setUploadStatus("✅ Upload successful!");
         setImage(null);
         setPlaceDesc("");
         setItemDesc("");
-        setContact("");
         setGeoLocation(null);
       } else {
         setUploadStatus(`❌ Upload failed: ${response.data.message}`);
@@ -136,17 +134,7 @@ const UploadItem = () => {
             required
           />
         </div>
-        <div>
-          <label className="block text-gray-600 font-medium mb-1">Your Contact Info</label>
-          <input
-            type="text"
-            placeholder="Phone/Email for claims"
-            value={contact}
-            onChange={(e) => setContact(e.target.value)}
-            className="w-full border border-gray-300 p-2 rounded"
-            required
-          />
-        </div>
+        
         <div>
           <label className="block text-gray-600 font-medium mb-1">Location</label>
           <button

@@ -17,14 +17,12 @@ upload_bp = Blueprint('upload', __name__)
 def upload_item(current_user):
     try:
         print("Received upload request")
-        mongo = current_app.mongo 
+        mongo = current_app.mongo
         data = request.get_json()
         image_data = data.get('image')
         place_desc = data.get('placeDesc')
         item_desc = data.get('itemDesc')
-        contact = data.get('contact')
         geo_location = data.get('geoLocation')
-        uploaded_by_id = current_user['_id']
 
         # Validate required fields
         missing = []
@@ -34,24 +32,20 @@ def upload_item(current_user):
             missing.append('placeDesc')
         if not item_desc:
             missing.append('itemDesc')
-        if not contact:
-            missing.append('contact')
         if not geo_location:
             missing.append('geoLocation')
 
         if missing:
             return jsonify({'message': f'Missing required fields: {", ".join(missing)}'}), 400
-        
-        # Validate geo location structure
+
         if not isinstance(geo_location, dict) or 'lat' not in geo_location or 'lng' not in geo_location:
             return jsonify({'message': 'Invalid location data'}), 400
 
-        # Improved base64 handling
         if image_data.startswith("data:image"):
             image_parts = image_data.split(";base64,")
             if len(image_parts) < 2:
                 return jsonify({'message': 'Invalid image data format'}), 400
-                
+
             file_ext = image_parts[0].split('/')[-1]
             encoded = image_parts[1]
             decoded_image = base64.b64decode(encoded)
@@ -60,7 +54,7 @@ def upload_item(current_user):
 
         filename = secure_filename(f"{datetime.now().timestamp()}.{file_ext}")
 
-        # Cloudinary upload
+        # Upload to Cloudinary
         upload_result = cloudinary.uploader.upload(
             decoded_image,
             resource_type="image",
@@ -70,26 +64,25 @@ def upload_item(current_user):
         )
 
         image_url = upload_result.get('secure_url')
+        public_id = upload_result.get('public_id')
+
         if not image_url:
             return jsonify({'message': 'Image upload failed'}), 500
 
-        # Ensure current_user['_id'] is ObjectId
         uploaded_by_id = current_user['_id']
         if isinstance(uploaded_by_id, str):
             uploaded_by_id = ObjectId(uploaded_by_id)
 
-        # Create GeoJSON object
         location_geojson = {
             "type": "Point",
             "coordinates": [geo_location['lng'], geo_location['lat']]
         }
 
-        # Insert into MongoDB
         mongo.db.items.insert_one({
             "placeDesc": place_desc,
             "itemDesc": item_desc,
             "imageUrl": image_url,
-            "contact": contact,
+            "public_id": public_id,  # Store public_id for deletion
             "location": location_geojson,
             "timestamp": datetime.utcnow(),
             "status": "not claimed",
@@ -116,6 +109,39 @@ def upload_item(current_user):
         print("Full upload error:", traceback.format_exc())
         return jsonify({'message': str(e)}), 500
 
+@upload_bp.route('/delete/<upload_id>', methods=['DELETE'])
+@token_required
+def delete_upload(current_user, upload_id):
+    try:
+        mongo = current_app.mongo
+        uploaded_by_id = current_user['_id']
+        if isinstance(uploaded_by_id, str):
+            uploaded_by_id = ObjectId(uploaded_by_id)
+
+        item = mongo.db.items.find_one({
+            "_id": ObjectId(upload_id),
+            "uploadedBy": uploaded_by_id
+        })
+
+        if not item:
+            return jsonify({"message": "Upload not found or not yours"}), 404
+
+        # Delete from Cloudinary if public_id exists
+        if item.get("public_id"):
+            try:
+                cloudinary.uploader.destroy(item["public_id"])
+                print(f"Deleted image from Cloudinary: {item['public_id']}")
+            except Exception as e:
+                print(f"Failed to delete from Cloudinary: {e}")
+
+        # Delete from MongoDB
+        mongo.db.items.delete_one({"_id": ObjectId(upload_id)})
+
+        return jsonify({"message": "Item deleted successfully"}), 200
+
+    except Exception as e:
+        print("Error deleting upload:", e)
+        return jsonify({"message": "Failed to delete upload"}), 500
 
 @upload_bp.route('/uploads', methods=['GET'])
 def get_all_uploads():
