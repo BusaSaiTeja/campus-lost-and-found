@@ -22,26 +22,29 @@ def unsubscribe(current_user):
         return jsonify({"message": "Failed to unsubscribe"}), 500
 
 @notifications_bp.route('/save-subscription', methods=['POST'])
-def save_subscription():
+@token_required
+def save_subscription(current_user):
     subscription = request.get_json()
     if not subscription:
         return jsonify({'message': 'No subscription data received'}), 400
+
+    # Attach userId
+    subscription['userId'] = str(current_user['_id'])
 
     mongo = current_app.mongo
     subscriptions_collection = mongo.db.subscriptions
     existing = subscriptions_collection.find_one({"endpoint": subscription['endpoint']})
 
     if existing:
-        # Optionally, update keys in case they changed
         subscriptions_collection.update_one(
             {"endpoint": subscription['endpoint']},
-            {"$set": {"keys": subscription.get('keys', {})}}
+            {"$set": {"keys": subscription.get('keys', {}), "userId": subscription['userId']}}
         )
         return jsonify({"message": "Subscription updated"}), 200
     else:
-        # Insert new subscription
         subscriptions_collection.insert_one(subscription)
         return jsonify({"message": "Subscription saved"}), 201
+
 
 
 def send_push_notification(subscription_info, message_body):

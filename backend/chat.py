@@ -4,9 +4,8 @@ from flask_socketio import emit, join_room, leave_room
 from bson import ObjectId
 from bson.errors import InvalidId
 import datetime, jwt
-
-from auth import token_required   # uses your existing decorator
-# Expect a User model similar to your auth code that can find_by_username
+from notifications import send_push_notification
+from auth import token_required  
 from models import User
 
 chat_bp = Blueprint("chat", __name__)
@@ -146,6 +145,26 @@ def init_socketio(sio):
             "text": text,
             "timestamp": now.isoformat() + "Z"
         }, to=chat_id)
+
+        partner_ids = [p["userId"] for p in chat["participants"] if p["userId"] != sender_id]
+        print(sender_id)
+        mongo = current_app.mongo
+        print("sending chat notifications ")
+        for partner_id in partner_ids:
+            # Find subscriptions for that user
+            subscriptions = list(mongo.db.subscriptions.find({"userId": partner_id}))
+            
+            notification_payload = {
+                "title": f"New message from {sender['username']}",
+                "body": text,
+                "url": f"/chat/{chat_id}"  # Link to open the chat
+            }
+            
+            for sub in subscriptions:
+                try:
+                    send_push_notification(sub, notification_payload)
+                except Exception as e:
+                    print(f"Failed to send chat notification to {sub.get('endpoint')}: {e}")
 
 def init_chat(db, sio):
     global users_col, chats_col, socketio
